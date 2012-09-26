@@ -1,3 +1,7 @@
+Forked from http://www.gitorious.org/kqoauth
+
+Original README below
+
 kQOAuth is a OAuth 1.0 library written for Qt in C++. The goals for the 
 library have been to provide easy integration to existing Qt applications
 utilizing Qt signals describing the OAuth process, and to provide a 
