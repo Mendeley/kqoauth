@@ -504,6 +504,8 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
         break;
     }
 
+    KQOAuthReply queryReply;
+
     // Let's disconnect this slot first
     /*
     disconnect(d->networkManager, SIGNAL(finished(QNetworkReply *)),
@@ -512,6 +514,9 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
 
     // Read the content of the reply from the network.
     QByteArray networkReply = reply->readAll();
+    queryReply.data = networkReply;
+    queryReply.statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    queryReply.contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
 
     // Stop any timer we have set on the request.
     d->r->requestTimerStop();
@@ -519,6 +524,7 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
     // Just don't do anything if we didn't get anything useful.
     if(networkReply.isEmpty()) {
         reply->deleteLater();
+        emit replyReceived(queryReply);
         return;
     }
     QMultiMap<QString, QString> responseTokens;
@@ -527,6 +533,7 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
     if (d->error != KQOAuthManager::NoError) {
         reply->deleteLater();
         emit requestReady(networkReply);
+        emit replyReceived(queryReply);
         d->emitTokens();
         return;
     }

@@ -47,6 +47,14 @@ public:
         ManagerError                // Manager error, cannot use for sending requests.
     };
 
+    /** Structure containing the minimum amount of information to process a request result */
+    struct KQOAuthReply
+    {
+        int statusCode;
+        QByteArray data;
+        QString contentType;
+    };
+
     explicit KQOAuthManager(QObject *parent = 0);
     ~KQOAuthManager();
 
@@ -140,6 +148,8 @@ Q_SIGNALS:
     // This signal will be emitted after each request has got a reply.
     // Parameter is the raw response from the service.
     void requestReady(QByteArray networkReply);
+
+    void replyReceived(KQOAuthReply reply);
 
     void authorizedRequestReady(QByteArray networkReply, int id);
 
