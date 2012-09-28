@@ -51,8 +51,10 @@ public:
     struct KQOAuthReply
     {
         int statusCode;
+        QUrl url;
         QByteArray data;
         QString contentType;
+        QVariant userData;
     };
 
     explicit KQOAuthManager(QObject *parent = 0);
@@ -66,7 +68,7 @@ public:
      * When the request is done it will emit signal requestReady(QByteArray networkReply).
      * NOTE: At the moment there is no timeout for the request.
      */
-    void executeRequest(KQOAuthRequest *request);    
+    void executeRequest(KQOAuthRequest *request, const QVariant& userData = QVariant());
     void executeAuthorizedRequest(KQOAuthRequest *request, int id);
     /**
      * Indicates to the user that KQOAuthManager should handle user authorization by

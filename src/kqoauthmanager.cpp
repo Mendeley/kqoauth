@@ -23,6 +23,10 @@
 #include "kqoauthmanager.h"
 #include "kqoauthmanager_p.h"
 
+namespace
+{
+    const QNetworkRequest::Attribute userDataAttribute = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1);
+}
 
 ////////////// Private d_ptr implementation ////////////////
 
@@ -147,7 +151,7 @@ KQOAuthManager::~KQOAuthManager()
     delete d_ptr;
 }
 
-void KQOAuthManager::executeRequest(KQOAuthRequest *request) {
+void KQOAuthManager::executeRequest(KQOAuthRequest *request, const QVariant& userData) {
     Q_D(KQOAuthManager);
 
     d->r = request;
@@ -174,6 +178,7 @@ void KQOAuthManager::executeRequest(KQOAuthRequest *request) {
 
     QNetworkRequest networkRequest;
     networkRequest.setUrl( request->requestEndpoint() );
+    networkRequest.setAttribute(userDataAttribute, userData);
 
     if (d->autoAuth && d->currentRequestType == KQOAuthRequest::TemporaryCredentials) {
         d->setupCallbackServer();
@@ -514,9 +519,11 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
 
     // Read the content of the reply from the network.
     QByteArray networkReply = reply->readAll();
+    queryReply.url = reply->request().url();
     queryReply.data = networkReply;
     queryReply.statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     queryReply.contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
+    queryReply.userData = reply->request().attribute(userDataAttribute);
 
     // Stop any timer we have set on the request.
     d->r->requestTimerStop();
@@ -562,6 +569,7 @@ void KQOAuthManager::onRequestReplyReceived( QNetworkReply *reply ) {
     }
 
     emit requestReady(networkReply);
+    emit replyReceived(queryReply);
 
     reply->deleteLater();           // We need to clean this up, after the event processing is done.
 }

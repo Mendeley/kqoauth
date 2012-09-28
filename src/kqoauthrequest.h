@@ -101,6 +101,7 @@ public:
 
     KQOAuthRequest::RequestType requestType() const;
     QUrl requestEndpoint() const;
+    void setRequestEndpoint(const QUrl& url);
 
     void setContentType(const QString &contentType);
     QString contentType();

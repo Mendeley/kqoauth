@@ -430,6 +430,11 @@ QUrl KQOAuthRequest::requestEndpoint() const {
     return d->oauthRequestEndpoint;
 }
 
+void KQOAuthRequest::setRequestEndpoint(const QUrl& url) {
+    Q_D(KQOAuthRequest);
+    d->oauthRequestEndpoint = url;
+}
+
 QList<QByteArray> KQOAuthRequest::requestParameters() {
     Q_D(KQOAuthRequest);
 
