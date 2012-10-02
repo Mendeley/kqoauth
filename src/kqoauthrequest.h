@@ -68,6 +68,10 @@ public:
     // Initialize the request of this type.
     void initRequest(KQOAuthRequest::RequestType type, const QUrl &requestEndpoint);
 
+	// reset the request object so it can be reused without having to reset
+	// tokens or keys
+	void resetRequest();
+
     void setConsumerKey(const QString &consumerKey);
     void setConsumerSecretKey(const QString &consumerSecretKey);
 

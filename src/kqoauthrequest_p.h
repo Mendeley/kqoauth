@@ -36,8 +36,8 @@ public:
     ~KQOAuthRequestPrivate();
 
     // Helper methods to get the values for the OAuth request parameters.
-    QString oauthTimestamp() const;
-    QString oauthNonce() const;
+    QString oauthTimestamp(bool forceNew = false) const;
+    QString oauthNonce(bool forceNew = false) const;
     QString oauthSignature();
 
     // Utility methods for making the request happen.

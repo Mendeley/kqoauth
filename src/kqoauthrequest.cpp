@@ -190,9 +190,9 @@ QByteArray KQOAuthRequestPrivate::encodedParamaterList(const QList< QPair<QStrin
     return QUrl::toPercentEncoding(resultList);
 }
 
-QString KQOAuthRequestPrivate::oauthTimestamp() const {
+QString KQOAuthRequestPrivate::oauthTimestamp(bool forceNew) const {
     // This is basically for unit tests only. In most cases we don't set the nonce beforehand.
-    if (!oauthTimestamp_.isEmpty()) {
+    if (!forceNew && !oauthTimestamp_.isEmpty()) {
         return oauthTimestamp_;
     }
 
@@ -204,9 +204,9 @@ QString KQOAuthRequestPrivate::oauthTimestamp() const {
 
 }
 
-QString KQOAuthRequestPrivate::oauthNonce() const {
+QString KQOAuthRequestPrivate::oauthNonce(bool forceNew) const {
     // This is basically for unit tests only. In most cases we don't set the nonce beforehand.
-    if (!oauthNonce_.isEmpty()) {
+    if (!forceNew && !oauthNonce_.isEmpty()) {
         return oauthNonce_;
     }
 
@@ -522,17 +522,23 @@ void KQOAuthRequest::setTimeout(int timeoutMilliseconds) {
 void KQOAuthRequest::clearRequest() {
     Q_D(KQOAuthRequest);
 
-    d->oauthRequestEndpoint = "";
-    d->oauthHttpMethodString = "";
     d->oauthConsumerKey = "";
     d->oauthConsumerSecretKey = "";
     d->oauthToken = "";
     d->oauthTokenSecret = "";
     d->oauthSignatureMethod = "";
+    resetRequest();
+}
+
+void KQOAuthRequest::resetRequest() {
+    Q_D(KQOAuthRequest);
+
+    d->oauthRequestEndpoint = "";
+    d->oauthHttpMethodString = "";
     d->oauthCallbackUrl = "";
     d->oauthVerifier = "";
-    d->oauthTimestamp_ = "";
-    d->oauthNonce_ = "";
+    d->oauthTimestamp_ = d_ptr->oauthTimestamp(true);
+    d->oauthNonce_ = d_ptr->oauthNonce(true);
     d->requestParameters.clear();
     d->additionalParameters.clear();
     d->timeout = 0;
