@@ -230,10 +230,6 @@ void KQOAuthManager::executeRequest(KQOAuthRequest *request, const QVariant& use
 
         networkRequest.setHeader(QNetworkRequest::ContentTypeHeader, request->contentType());
 
-        qDebug() << networkRequest.rawHeaderList();
-        qDebug() << networkRequest.rawHeader("Authorization");
-        qDebug() << networkRequest.rawHeader("Content-Type");
-
         QNetworkReply *reply;
         if (request->contentType() == "application/x-www-form-urlencoded") {
           reply = d->networkManager->post(networkRequest, request->requestBody());
@@ -324,12 +320,6 @@ void KQOAuthManager::executeAuthorizedRequest(KQOAuthRequest *request, int id) {
     } else if (request->httpMethod() == KQOAuthRequest::POST) {
 
         networkRequest.setHeader(QNetworkRequest::ContentTypeHeader, request->contentType());
-
-        /*
-        qDebug() << networkRequest.rawHeaderList();
-        qDebug() << networkRequest.rawHeader("Authorization");
-        qDebug() << networkRequest.rawHeader("Content-Type");
-        */
 
         if (request->contentType() == "application/x-www-form-urlencoded") {
           reply = d->networkManager->post(networkRequest, request->requestBody());
