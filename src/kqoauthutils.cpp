@@ -20,9 +20,26 @@
 #include <QString>
 #include <QCryptographicHash>
 #include <QByteArray>
+#include <QUrl>
 
 #include <QtDebug>
 #include "kqoauthutils.h"
+
+namespace
+{
+bool normalizedParameterSort(const QPair<QString, QString> &left, const QPair<QString, QString> &right) {
+    QString keyLeft = left.first;
+    QString valueLeft = left.second;
+    QString keyRight = right.first;
+    QString valueRight = right.second;
+
+    if(keyLeft == keyRight) {
+        return (valueLeft < valueRight);
+    } else {
+        return (keyLeft < keyRight);
+    }
+}
+};
 
 QString KQOAuthUtils::hmac_sha1(const QString &message, const QString &key)
 {
@@ -76,4 +93,52 @@ QString KQOAuthUtils::hmac_sha1(const QString &message, const QString &key)
     /* http://tools.ietf.org/html/rfc2104 - (7) */
     sha1 = QCryptographicHash::hash(workArray, QCryptographicHash::Sha1);
     return QString(sha1.toBase64());
+}
+
+void KQOAuthUtils::sortRequestParameters(QList<QPair<QString,QString> >& parameters)
+{
+	qSort(parameters.begin(),
+		  parameters.end(),
+		  normalizedParameterSort
+		  );
+}
+
+QByteArray KQOAuthUtils::encodeParameters(const QList< QPair<QString, QString> > &parameters) {
+    QByteArray resultList;
+
+    bool first = true;
+    QPair<QString, QString> parameter;
+
+    foreach (parameter, parameters) {
+        if(!first) {
+            resultList.append( "&" );
+        } else {
+            first = false;
+        }
+
+        // Here we don't need to explicitely encode the strings to UTF-8 since
+        // QUrl::toPercentEncoding() takes care of that for us.
+        resultList.append( QUrl::toPercentEncoding(parameter.first)     // Parameter key
+                           + "="
+                           + QUrl::toPercentEncoding(parameter.second)  // Parameter value
+                          );
+
+    }
+
+    return QUrl::toPercentEncoding(resultList);
+}
+
+QString KQOAuthUtils::oauthSignature(const QByteArray& requestBaseString, const QString& oauthConsumerSecret, 
+									 const QString& accessTokenSecret)
+{
+    /**
+     * http://oauth.net/core/1.0/#anchor16
+     * The HMAC-SHA1 signature method uses the HMAC-SHA1 signature algorithm as defined in [RFC2104] where the
+     * Signature Base String is the text and the key is the concatenated values (each first encoded per Parameter
+     * Encoding) of the Consumer Secret and Token Secret, separated by an ‘&’ character (ASCII code 38) even if empty.
+     **/
+    const QString secret = QString(QUrl::toPercentEncoding(oauthConsumerSecret)) + "&" + QString(QUrl::toPercentEncoding(accessTokenSecret));
+    const QString signature = hmac_sha1(requestBaseString, secret);
+    return QString(QUrl::toPercentEncoding(signature));
+
 }

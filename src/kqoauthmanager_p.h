@@ -20,7 +20,6 @@
 #ifndef KQOAUTHMANAGER_P_H
 #define KQOAUTHMANAGER_P_H
 
-#include "kqoauthauthreplyserver.h"
 #include "kqoauthrequest.h"
 
 class KQOAUTH_EXPORT KQOAuthManagerPrivate {
@@ -30,42 +29,12 @@ public:
     ~KQOAuthManagerPrivate();
 
     QList< QPair<QString, QString> > createQueryParams(const KQOAuthParameters &requestParams);
-    QMultiMap<QString, QString> createTokensFromResponse(QByteArray reply);
-    bool setSuccessfulRequestToken(const QMultiMap<QString, QString> &request);
-    bool setSuccessfulAuthorized(const QMultiMap<QString, QString> &request);
-    void emitTokens();
-    bool setupCallbackServer();
 
     KQOAuthManager::KQOAuthError error;
-    KQOAuthRequest *r;                  // This request is used to cache the user sent request.
-    KQOAuthRequest *opaqueRequest;       // This request is used to creating opaque convenience requests for the user.
     KQOAuthManager * const q_ptr;
 
-    /**
-     * The items below are needed in order to store the state of the manager and
-     * by that be able to do convenience operations for the user.
-     */
-    KQOAuthRequest::RequestType currentRequestType;
-
-    // Variables we store here for opaque request handling.
-    // NOTE: The variables are labeled the same for both access token request
-    //       and protected resource access.
-    QString requestToken;
-    QString requestTokenSecret;
-    QString consumerKey;
-    QString consumerKeySecret;
-    QString requestVerifier;
-
-    KQOAuthAuthReplyServer *callbackServer;
-
-    bool hasTemporaryToken;
-    bool isVerified;
-    bool isAuthorized;
-    bool autoAuth;
     QNetworkAccessManager *networkManager;
     bool managerUserSet;
-    QMap<QNetworkReply*, int> requestIds;
-
     Q_DECLARE_PUBLIC(KQOAuthManager);
 };
 

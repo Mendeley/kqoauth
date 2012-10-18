@@ -27,12 +27,12 @@
 #include "kqoauthrequest.h"
 
 class KQOAuthRequest;
-class KQOAuthManagerThread;
-class KQOAuthManagerPrivate;
 class QNetworkAccessManager;
 class QUrl;
 class QByteArray;
-class KQOAUTH_EXPORT KQOAuthManager : public QObject
+
+
+class KQOAuthManager : public QObject
 {
     Q_OBJECT
 public:
@@ -47,20 +47,8 @@ public:
         ManagerError                // Manager error, cannot use for sending requests.
     };
 
-    /** Structure containing the minimum amount of information to process a request result */
-    struct KQOAuthReply
-    {
-        int statusCode;
-        QUrl url;
-        QByteArray data;
-        QString contentType;
-        QVariant userData;
-    };
-
     explicit KQOAuthManager(QObject *parent = 0);
     ~KQOAuthManager();
-
-    KQOAuthError lastError();
 
     /**
      * The manager executes the given request. It takes the HTTP parameters from the
@@ -68,68 +56,7 @@ public:
      * When the request is done it will emit signal requestReady(QByteArray networkReply).
      * NOTE: At the moment there is no timeout for the request.
      */
-    void executeRequest(KQOAuthRequest *request, const QVariant& userData = QVariant());
-    void executeAuthorizedRequest(KQOAuthRequest *request, int id);
-    /**
-     * Indicates to the user that KQOAuthManager should handle user authorization by
-     * opening the user's default browser and parsing the reply from the service.
-     * By setting the parameter to true, KQOAuthManager will store intermediate results
-     * of the OAuth 1.0 process in its own opaque request. This information is used in
-     * the user authorization process and also when calling sendAuthorizedRequest().
-     * NOTE: You need to set this to true if you want to use getUserAccessTokens() or
-     *       sendAuthorizedRequest().
-     */
-    void setHandleUserAuthorization(bool set);
-
-    /**
-     * Returns true if the KQOAuthManager has retrieved the oauth_token value. Otherwise
-     * return false.
-     */
-    bool hasTemporaryToken();
-    /**
-     * Returns true if the user has authorized us to use the protected resources. Otherwise
-     * returns false.
-     * NOTE: In order for KQOAuthManager to know if the user has authorized us to use the
-     *       protected resources, KQOAuthManager must be in control of the user authorization
-     *       process. Hence, this returns true if setHandleUserAuthorization() is set to true
-     *       and the user is authorized with getUserAuthorization().
-     */
-    bool isVerified();
-    /**
-     * Returns true if KQOAuthManager has the access token and hence can access the protected
-     * resources. Otherwise returns false.
-     * NOTE: In order for KQOAuthManager to know if we have access to protected resource
-     *       KQOAuthManager must be in control of the user authorization process and requesting
-     *       the acess token. Hence, this returns true if setHandleUserAuthorization() is set to true
-     *       and the user is authorized with getUserAuthorization() and the access token must be retrieved
-     *       with getUserAccessTokens.
-     */
-    bool isAuthorized();
-
-    /**
-     * This is a convenience API for authorizing the user.
-     * The call will open the user's default browser, setup a local HTTP server and parse the reply from the
-     * service after the user has authorized us to access protected resources. If the user authorizes
-     * us to access protected resources, the verifier token is stored in KQOAuthManager for further use.
-     * In order to use this method, you must set setHandleUserAuthorization() to true.
-     */
-    void getUserAuthorization(QUrl authorizationEndpoint);
-    /**
-     * This is a convenience API for retrieving the access token in exchange for the temporary token and the
-     * verifier.
-     * This call will create a KQOAuthRequest and use the previously stored temporary token and verifier to
-     * exchange for the access token, which will be used to access the protected resources.
-     * Note that in order to use this method, KQOAuthManager must be in control of the user authorization process.
-     * Set setHandleUserAuthorization() to true and retrieve user authorization with void getUserAuthorization.
-     */
-    void getUserAccessTokens(QUrl accessTokenEndpoint);
-    /**
-     * Sends a request to the protected resources. Parameters for the request are service specific and
-     * are given to the 'requestParameters' as parameters.
-     * Note that in order to use this method, KQOAuthManager must be in control of the user authorization process.
-     * Set setHandleUserAuthorization() to true and retrieve user authorization with void getUserAuthorization.
-     */
-    void sendAuthorizedRequest(QUrl requestEndpoint, const KQOAuthParameters &requestParameters);
+    QNetworkReply* executeRequest(KQOAuthRequest *request, const QVariant& userData = QVariant());
 
     /**
      * Sets a custom QNetworkAccessManager to handle network requests. This method can be useful if the
@@ -141,53 +68,12 @@ public:
      */
     void setNetworkManager(QNetworkAccessManager *manager);
 
-    /**
-     * Returns the given QNetworkAccessManager. Returns NULL if none is given.
-     */
-    QNetworkAccessManager* networkManager() const;
-
-Q_SIGNALS:
-    // This signal will be emitted after each request has got a reply.
-    // Parameter is the raw response from the service.
-    void requestReady(QByteArray networkReply);
-
-    void replyReceived(KQOAuthReply reply);
-
-    void authorizedRequestReady(QByteArray networkReply, int id);
-
-    // This signal will be emited when we have an request tokens available
-    // (either temporary resource tokens, or authorization tokens).
-    void receivedToken(QString oauth_token, QString oauth_token_secret);   // oauth_token, oauth_token_secret
-
-    // This signal is emited when temporary tokens are returned from the service.
-    // Note that this signal is also emited in case temporary tokens are not available.
-    void temporaryTokenReceived(QString oauth_token, QString oauth_token_secret);   // oauth_token, oauth_token_secret
-
-    // This signal is emited when the user has authenticated the application to
-    // communicate with the protected resources. Next we need to exchange the
-    // temporary tokens for access tokens.
-    // Note that this signal is also emited if user denies access.
-    void authorizationReceived(QString oauth_token, QString oauth_verifier); // oauth_token, oauth_verifier
-
-    // This signal is emited when access tokens are received from the service. We are
-    // ready to start communicating with the protected resources.
-    void accessTokenReceived(QString oauth_token, QString oauth_token_secret);  // oauth_token, oauth_token_secret
-
-    // This signal is emited when the authorized request is done.
-    // This ends the kQOAuth interactions.
-    void authorizedRequestDone();
-
-private Q_SLOTS:
-    void onRequestReplyReceived( QNetworkReply *reply );
-    void onAuthorizedRequestReplyReceived( QNetworkReply *reply );
-    void onVerificationReceived(QMultiMap<QString, QString> response);
-    void slotError(QNetworkReply::NetworkError error);
-
 private:
-    KQOAuthManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(KQOAuthManager);
-    Q_DISABLE_COPY(KQOAuthManager);
 
+	KQOAuthManager::KQOAuthError error;
+	QList< QPair<QString, QString> > createQueryParams(const KQOAuthParameters &requestParams);
+    QNetworkAccessManager *networkManager;
+    bool managerUserSet;
 };
 
 #endif // KQOAUTHMANAGER_H

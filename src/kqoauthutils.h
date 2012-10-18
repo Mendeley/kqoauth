@@ -28,6 +28,10 @@ class KQOAUTH_EXPORT KQOAuthUtils
 public:
 
     static QString hmac_sha1(const QString &message, const QString &key);
+	static void sortRequestParameters(QList<QPair<QString,QString> >& parameters);
+	static QByteArray encodeParameters(const QList< QPair<QString, QString> > &parameters);
+	
+	static QString oauthSignature(const QByteArray& requestBaseString, const QString& oauthConsumerSecret, const QString& accessTokenSecret);
 };
 
 #endif // KQOAUTHUTILS_H
